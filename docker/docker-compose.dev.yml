@@ -1,0 +1,84 @@
+name: saas-web-app
+
+volumes:
+  # region Cloud services
+  pgdata:
+  # endregion
+
+networks:
+  saas-web-app-network:
+    driver: bridge
+    attachable: true
+
+services:
+  st-web-app:
+    depends_on:
+      - st-wa-postgres
+    container_name: st-web-app
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile.dev
+    env_file:
+      - ../.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    ports:
+      - 3000:3000
+    volumes:
+      - ../:/app
+    command:
+      - "pnpm"
+      - "dev"
+    networks:
+      - saas-web-app-network
+
+  # region Cloud services
+  st-wa-postgres:
+    container_name: st-wa-postgres
+    image: postgres:17
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_DB: saas-web-app
+      POSTGRES_USER: saas-wa-user
+      POSTGRES_PASSWORD: saas-wa-password
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - saas-web-app-network
+  
+  st-wa-ngrok:
+    container_name: st-wa-ngrok
+    image: ngrok/ngrok:alpine
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
+    volumes:
+      - ../ngrok.yml:/etc/ngrok.yml
+    ports:
+      - 4040:4040
+    networks:
+      - saas-web-app-network
+  
+  # st-wa-permitio:
+  #   container_name: st-wa-permitio
+  #   image: permitio/pdp-v2:latest
+  #   # restart: always
+  #   env_file:
+  #     - ../.env
+  #   ports:
+  #     - 7766:7000
+  #   networks:
+  #     - saas-web-app-network
+  
+  # endregion
+
