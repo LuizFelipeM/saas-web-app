@@ -10,6 +10,10 @@ networks:
     driver: bridge
     attachable: true
 
+  shared-network:
+    external: true
+    name: shared-network
+
 services:
   st-web-app:
     container_name: st-web-app
@@ -28,6 +32,7 @@ services:
       - ../:/app
     networks:
       - saas-web-app-network
+      - shared-network
 
   # region Cloud services
   st-postgres:

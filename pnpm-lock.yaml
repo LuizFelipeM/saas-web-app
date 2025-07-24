@@ -48,8 +48,8 @@ importers:
         specifier: ^1.2.7
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@saas-packages/queue-manager':
-        specifier: ^1.3.0
-        version: 1.3.0
+        specifier: ^1.4.1
+        version: 1.4.1
       '@stripe/stripe-js':
         specifier: ^7.5.0
         version: 7.5.0
@@ -1209,8 +1209,8 @@ packages:
   '@saas-packages/core@1.0.1':
     resolution: {integrity: sha512-TlhX1M+UlNzpn+Ki89on9Qs3DQFpEYwNi0kETANMhYM5tjCLEOKcWVDHD3ewYOVgT1UyjJETKWP9Qra4wmWrQQ==}
 
-  '@saas-packages/queue-manager@1.3.0':
-    resolution: {integrity: sha512-U6TuM4gUglJDpPZ1hL1yT1WPr98vAoyEhJzzgB2d4PVDBB5/T9mCr4CFopjCK30Yi0SKQy2YvvsIqICIgtMDEg==}
+  '@saas-packages/queue-manager@1.4.1':
+    resolution: {integrity: sha512-jcpTMLKZ/+fckBq6/sKtSjAhPnXGmL+eA4mkdfp5jHhIBILf0WRtiiwCdNrQ8xStKEWhZq81DTAl5c+ubcTVzQ==}
 
   '@stablelib/base64@1.0.1':
     resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
@@ -4302,7 +4302,7 @@ snapshots:
       reflect-metadata: 0.1.14
       tsyringe: 4.10.0
 
-  '@saas-packages/queue-manager@1.3.0':
+  '@saas-packages/queue-manager@1.4.1':
     dependencies:
       '@saas-packages/core': 1.0.1
       bullmq: 5.56.5
