@@ -1,13 +1,13 @@
 import { DIContainer } from "@/lib/di.container";
-import { DITypes } from "@/lib/di.container.types";
+import { DITypes } from "@/lib/di.container/types";
 import { Price } from "@/types/price";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const prisma = DIContainer.getInstance(DITypes.Prisma);
+    const dbManager = DIContainer.getInstance(DITypes.DatabaseManager);
 
-    const plans = await prisma.plan.findMany({
+    const plans = await dbManager.client.plan.findMany({
       where: { isActive: true },
       orderBy: { createdAt: "asc" },
       select: {

@@ -1,6 +1,6 @@
 import { DIContainer } from "@/lib/di.container";
-import { DITypes } from "@/lib/di.container.types";
-import { prisma } from "@/lib/prisma";
+import { DITypes } from "@/lib/di.container/types";
+import { prisma } from "@/lib/generated/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {

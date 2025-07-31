@@ -47,6 +47,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.7
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@saas-packages/database-manager':
+        specifier: ^1.2.0
+        version: 1.2.0(@prisma/client@6.12.0(prisma@6.12.0(typescript@5.8.3))(typescript@5.8.3))
       '@saas-packages/queue-manager':
         specifier: ^1.4.1
         version: 1.4.1
@@ -1208,6 +1211,11 @@ packages:
 
   '@saas-packages/core@1.0.1':
     resolution: {integrity: sha512-TlhX1M+UlNzpn+Ki89on9Qs3DQFpEYwNi0kETANMhYM5tjCLEOKcWVDHD3ewYOVgT1UyjJETKWP9Qra4wmWrQQ==}
+
+  '@saas-packages/database-manager@1.2.0':
+    resolution: {integrity: sha512-eoen6UHP3eJ5b82BuCXRsAxhoLFqvz6aee4Xw+d+2G1/+4cTvJU43u3YU/za6B4oVoBK4xCZSdicVS6KaPJ0IA==}
+    peerDependencies:
+      '@prisma/client': ^5.0.0
 
   '@saas-packages/queue-manager@1.4.1':
     resolution: {integrity: sha512-jcpTMLKZ/+fckBq6/sKtSjAhPnXGmL+eA4mkdfp5jHhIBILf0WRtiiwCdNrQ8xStKEWhZq81DTAl5c+ubcTVzQ==}
@@ -4301,6 +4309,11 @@ snapshots:
     dependencies:
       reflect-metadata: 0.1.14
       tsyringe: 4.10.0
+
+  '@saas-packages/database-manager@1.2.0(@prisma/client@6.12.0(prisma@6.12.0(typescript@5.8.3))(typescript@5.8.3))':
+    dependencies:
+      '@prisma/client': 6.12.0(prisma@6.12.0(typescript@5.8.3))(typescript@5.8.3)
+      '@saas-packages/core': 1.0.1
 
   '@saas-packages/queue-manager@1.4.1':
     dependencies:

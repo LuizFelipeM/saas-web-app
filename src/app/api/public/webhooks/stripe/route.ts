@@ -1,6 +1,6 @@
 import { DIContainer } from "@/lib/di.container";
-import { DITypes } from "@/lib/di.container.types";
-import { ExternalQueues } from "@/lib/ExternalQueues";
+import { DITypes } from "@/lib/di.container/types";
+import { Queues } from "@/lib/queues";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -41,12 +41,12 @@ async function processEvent(event: Stripe.Event) {
 
   if (typeof customerId !== "string") {
     throw new Error(
-      `[STRIPE WEBHOOK] ID isn't a string.\nEvent type: ${event.type}`
+      `[STRIPE WEBHOOK] Customer ID ${customerId} isn't a string.\nEvent type: ${event.type}`
     );
   }
 
   const queueManager = DIContainer.getInstance(DITypes.QueueManager);
-  return await queueManager.addJob(ExternalQueues.STRIPE_WEBHOOKS, event);
+  return await queueManager.addJob(Queues.STRIPE_WEBHOOKS, event);
 }
 
 export async function POST(req: Request) {

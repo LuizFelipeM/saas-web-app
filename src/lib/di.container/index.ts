@@ -1,18 +1,17 @@
 import "reflect-metadata";
 
-import { AddonService } from "@/services/addon.service";
 import { FeatureService } from "@/services/feature/feature.service";
-import { KVStoreService } from "@/services/kvStore.service";
 import { OrganizationService } from "@/services/organization.service";
-import { PlanService } from "@/services/plan.service";
-import { SubscriptionService } from "@/services/subscription.service";
 import { UserService } from "@/services/user.service";
+import { clerkClient } from "@clerk/nextjs/server";
+import { DatabaseManager } from "@saas-packages/database-manager";
 import { QueueManager } from "@saas-packages/queue-manager";
 import Redis from "ioredis";
 import Stripe from "stripe";
 import { container } from "tsyringe";
-import { DITypes, ServiceTypes } from "./di.container.types";
-import { PrismaClient } from "./prisma";
+import { PrismaClient } from "../generated/prisma";
+import { createQueues } from "../queues";
+import { DITypes, ServiceTypes } from "./types";
 
 export class DIContainer {
   private static _container = container;
@@ -25,17 +24,11 @@ export class DIContainer {
   }
 
   public static initialize() {
-    // Bind Prisma instance
-    this._container.register(DITypes.Prisma, { useValue: new PrismaClient() });
+    this.registerSingletonInstances();
+    this.registerServices();
+  }
 
-    // Bind Stripe instance
-    this._container.register(DITypes.Stripe, {
-      useValue: new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2025-06-30.basil",
-      }),
-    });
-
-    // Bind Redis instance
+  private static async registerSingletonInstances() {
     this._container.register(DITypes.Redis, {
       useValue: new Redis({
         host: process.env.REDIS_HOST,
@@ -44,7 +37,18 @@ export class DIContainer {
       }),
     });
 
-    // Bind QueueManager instance
+    this._container.register(DITypes.Stripe, {
+      useValue: new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: "2025-06-30.basil",
+      }),
+    });
+
+    this._container.register(DITypes.DatabaseManager, {
+      useValue: new DatabaseManager({
+        prismaClient: new PrismaClient(),
+      }),
+    });
+
     this._container.register(DITypes.QueueManager, {
       useFactory: (context) => {
         const redis = context.resolve<Redis>(DITypes.Redis);
@@ -60,17 +64,19 @@ export class DIContainer {
               },
             },
           });
+          createQueues(this._singletonInstances[DITypes.QueueManager]!);
         }
         return this._singletonInstances[DITypes.QueueManager];
       },
     });
 
-    // Bind services
-    this._container.register(DITypes.AddonService, { useClass: AddonService });
-    this._container.register(DITypes.PlanService, { useClass: PlanService });
-    this._container.register(DITypes.SubscriptionService, {
-      useClass: SubscriptionService,
+    this._singletonInstances[DITypes.ClerkClient] = await clerkClient();
+    this._container.register(DITypes.ClerkClient, {
+      useValue: this._singletonInstances[DITypes.ClerkClient],
     });
+  }
+
+  private static registerServices() {
     this._container.register(DITypes.FeatureService, {
       useClass: FeatureService,
     });
@@ -78,9 +84,6 @@ export class DIContainer {
       useClass: OrganizationService,
     });
     this._container.register(DITypes.UserService, { useClass: UserService });
-    this._container.register(DITypes.KVStoreService, {
-      useClass: KVStoreService,
-    });
   }
 
   public static getInstance<T extends keyof ServiceTypes>(type: T) {

@@ -1,4 +1,4 @@
-import { Addon, FeatureType, Plan } from "@/lib/prisma";
+import { Addon, FeatureType, Plan } from "@/lib/generated/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FeatureService } from "./feature.service";
 

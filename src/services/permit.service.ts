@@ -1,6 +1,6 @@
 import { DIContainer } from "@/lib/di.container";
-import { DITypes } from "@/lib/di.container.types";
-import { UserRole } from "@/lib/prisma";
+import { DITypes } from "@/lib/di.container/types";
+import { UserRole } from "@/lib/generated/prisma";
 import { Permit } from "permitio";
 
 const permit = new Permit({
@@ -10,10 +10,10 @@ const permit = new Permit({
 
 export async function syncUserRolesToPermit() {
   try {
-    const prisma = DIContainer.getInstance(DITypes.Prisma);
+    const dbManager = DIContainer.getInstance(DITypes.DatabaseManager);
 
     // Fetch all company users with their roles
-    const organizationUsers = await prisma.organizationUser.findMany({
+    const memberships = await dbManager.client.membership.findMany({
       include: {
         user: {
           select: {
@@ -25,7 +25,7 @@ export async function syncUserRolesToPermit() {
     });
 
     // Sync each user's roles to Permit
-    for (const companyUser of organizationUsers) {
+    for (const companyUser of memberships) {
       await permit.api.syncUser({
         key: companyUser.user.clerkId,
         attributes: {
@@ -52,10 +52,10 @@ export async function syncSingleUserRole(
   role: UserRole
 ) {
   try {
-    const prisma = DIContainer.getInstance(DITypes.Prisma);
+    const dbManager = DIContainer.getInstance(DITypes.DatabaseManager);
 
     // Sync user to Permit
-    const user = await prisma.user.findUnique({
+    const user = await dbManager.client.user.findUnique({
       where: { clerkId },
     });
 
@@ -84,7 +84,7 @@ export async function syncSingleUserRole(
 
 export async function removeUserRole(clerkId: string, organizationId: string) {
   try {
-    const prisma = DIContainer.getInstance(DITypes.Prisma);
+    const dbManager = DIContainer.getInstance(DITypes.DatabaseManager);
 
     await permit.api.unassignRole({
       user: clerkId,
@@ -104,7 +104,7 @@ export async function checkPermission(
   action: string
 ) {
   try {
-    const prisma = DIContainer.getInstance(DITypes.Prisma);
+    const dbManager = DIContainer.getInstance(DITypes.DatabaseManager);
 
     const result = await permit.check(clerkId, action, {
       type: "company",

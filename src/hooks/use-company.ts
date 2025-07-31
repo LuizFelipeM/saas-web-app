@@ -5,7 +5,7 @@ import {
   prisma,
   Subscription,
   User,
-} from "@/lib/prisma";
+} from "@/lib/generated/prisma";
 import { useQuery } from "@tanstack/react-query";
 
 export type OrganizationWithUsers = Organization & {

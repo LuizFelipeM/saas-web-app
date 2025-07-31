@@ -1,6 +1,5 @@
 import { DIContainer } from "@/lib/di.container";
-import { DITypes } from "@/lib/di.container.types";
-import { UserRole } from "@/lib/generated/prisma";
+import { DITypes } from "@/lib/di.container/types";
 import { isClerkError } from "@/lib/utils";
 import { verifyWebhook } from "@clerk/backend/webhooks";
 import { NextResponse } from "next/server";
@@ -10,7 +9,6 @@ export async function POST(req: Request) {
     const event = await verifyWebhook(req);
 
     const userService = DIContainer.getInstance(DITypes.UserService);
-    const prisma = DIContainer.getInstance(DITypes.Prisma);
 
     switch (event.type) {
       case "user.created": {
@@ -19,19 +17,13 @@ export async function POST(req: Request) {
           throw new Error("Email not found");
         }
 
-        const organizationId = event.data.organization_memberships?.[0]?.id;
-        const userId = event.data.id;
-
-        const errors: Error[] = [];
-
-        try {
-          await userService.sync(userId, email);
-        } catch (error) {
-          console.error("Error: Could not sync user.\n", error);
-          errors.push(error as Error);
-        }
+        const userClerkId = event.data.id;
+        const organizationClerkId =
+          event.data.organization_memberships?.[0]?.id;
 
         try {
+          const user = await userService.sync(userClerkId, email);
+
           const organizationService = DIContainer.getInstance(
             DITypes.OrganizationService
           );
@@ -41,33 +33,17 @@ export async function POST(req: Request) {
             event.data.email_addresses[0].email_address.split("@")[0]
           }'s Organization`;
 
-          if (organizationId) {
-            const organization = await prisma.organization.findUnique({
-              where: { clerkId: organizationId },
-            });
-
-            if (organization) {
-              await organizationService.addUser(
-                organization.id,
-                userId,
-                UserRole.VIEWER
-              );
-            } else {
-              await organizationService.create(organizationName, userId);
-            }
-          } else {
-            await organizationService.create(organizationName, userId);
-          }
-        } catch (error) {
-          console.error("Error: Could not create organization.\n", error);
-          errors.push(error as Error);
-        }
-
-        if (errors.length > 0) {
-          throw new AggregateError(
-            errors,
-            "Error: Could not sync user and create organization."
+          await organizationService.sync(
+            user,
+            organizationName,
+            organizationClerkId
           );
+        } catch (error) {
+          console.error(
+            "Error: Could not sync user and organization.\n",
+            error
+          );
+          throw error;
         }
         break;
       }

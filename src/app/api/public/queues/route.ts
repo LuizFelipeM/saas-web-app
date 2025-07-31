@@ -1,8 +1,8 @@
 import { withDI } from "@/lib/handlers/with.di";
 
 import { DIContainer } from "@/lib/di.container";
-import { DITypes } from "@/lib/di.container.types";
-import { ExternalQueues } from "@/lib/ExternalQueues";
+import { DITypes } from "@/lib/di.container/types";
+import { Queues } from "@/lib/queues";
 import { NextResponse } from "next/server";
 
 export const POST = withDI(async (request: Request) => {
@@ -12,8 +12,8 @@ export const POST = withDI(async (request: Request) => {
     const queueManager = DIContainer.getInstance(DITypes.QueueManager);
 
     // Add job to queue
-    queueManager.createQueue(ExternalQueues.TEST);
-    await queueManager.addJob(ExternalQueues.TEST, body);
+    queueManager.createQueue(Queues.TEST);
+    await queueManager.addJob(Queues.TEST, body);
 
     return NextResponse.json({ success: true });
   } catch (error) {

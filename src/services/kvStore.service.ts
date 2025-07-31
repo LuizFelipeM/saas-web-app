@@ -1,4 +1,4 @@
-import { DITypes } from "@/lib/di.container.types";
+import { DITypes } from "@/lib/di.container/types";
 import { Redis } from "ioredis";
 import Stripe from "stripe";
 import { inject, injectable } from "tsyringe";

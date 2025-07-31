@@ -1,4 +1,4 @@
-import { FeatureType } from "@/lib/prisma";
+import { FeatureType } from "@/lib/generated/prisma";
 
 export interface Feature {
   type: FeatureType;

@@ -26,6 +26,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - DATABASE_URL=postgresql://saas-wa-user:saas-wa-password@st-wa-postgres:5431/saas-web-app
     ports:
       - 3000:3000
     volumes:

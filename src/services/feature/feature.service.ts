@@ -1,72 +1,110 @@
-import { Addon, Plan } from "@/lib/prisma";
-import { hasDuplicates } from "@/lib/utils";
-import { Feature } from "@/types/feature";
-import { injectable } from "tsyringe";
+import { type DatabaseManagerType, DITypes } from "@/lib/di.container/types";
+import { Prisma } from "@/lib/generated/prisma";
+import { inject, injectable } from "tsyringe";
+import * as z from "zod";
 
 @injectable()
 export class FeatureService {
-  constructor() {}
+  private readonly organizationDelegate: Prisma.OrganizationDelegate;
 
-  private mergeFeatures(
-    planFeatures: Record<string, Feature>,
-    addonFeatures: Record<string, Feature>
-  ): Record<string, Feature> {
-    const mergedFeatures: Record<string, Feature> = { ...planFeatures };
+  private readonly usageSchema = z.record(z.string(), z.number());
+  private readonly featuresSchema = z.record(
+    z.string(),
+    z.object({
+      type: z.enum(["DEFAULT", "USAGE", "METERED"]),
+      metadata: z
+        .object({
+          min: z.number().optional(),
+          max: z.number().optional(),
+        })
+        .optional(),
+    })
+  );
 
-    for (const key in addonFeatures) {
-      if (
-        !planFeatures[key] ||
-        planFeatures[key].type !== addonFeatures[key].type
-      ) {
-        mergedFeatures[key] = addonFeatures[key];
-      } else {
-        if (
-          planFeatures[key].type === addonFeatures[key].type &&
-          planFeatures[key].type === "METERED"
-        ) {
-          mergedFeatures[key] = {
-            ...planFeatures[key],
-            ...addonFeatures[key],
-            metadata: {
-              min:
-                Math.max(0, planFeatures[key].metadata?.min ?? 0) +
-                Math.max(0, addonFeatures[key].metadata?.min ?? 0),
-              max:
-                Math.max(0, planFeatures[key].metadata?.max ?? 0) +
-                Math.max(0, addonFeatures[key].metadata?.max ?? 0),
-            },
-          };
-        }
-      }
-    }
-
-    return mergedFeatures;
+  constructor(
+    @inject(DITypes.DatabaseManager)
+    private readonly dbManager: DatabaseManagerType
+  ) {
+    this.organizationDelegate = this.dbManager.client.organization;
   }
 
-  generateSubscriptionFeatures(
-    plan: Plan,
-    addons: Addon[]
-  ): Record<string, Feature> {
-    if (hasDuplicates(addons.map((addon) => addon.key))) {
-      console.error(
-        "Only one addon of the same feature is allowed to be added, please remove the duplicate addon"
-      );
-      throw new Error(
-        "Only one addon of the same feature is allowed to be added, please remove the duplicate addon"
-      );
+  async isAllowed(
+    organizationId: string,
+    featureKey: string
+  ): Promise<boolean> {
+    const organization = await this.organizationDelegate.findUnique({
+      where: { id: organizationId },
+      select: { features: true, usages: true },
+    });
+
+    if (!organization || !organization.features || !organization.usages) {
+      return false;
     }
 
-    const planFeatures: Record<string, Feature> =
-      plan.features as unknown as Record<string, Feature>;
-    const addonFeatures: Record<string, Feature> = addons?.reduce(
-      (acc, { key, feature }) => ({
-        ...acc,
-        [key]: feature,
-      }),
-      {}
-    );
+    const features = this.featuresSchema.parse(organization.features);
+    const feature = features[featureKey];
+    if (!feature) return false;
 
-    const features = this.mergeFeatures(planFeatures, addonFeatures);
-    return features;
+    const usages = this.usageSchema.parse(organization.usages);
+    const usage = usages[featureKey];
+
+    switch (feature.type) {
+      case "METERED":
+        return this.isMeteredFeatureAllowed(feature, usage);
+      case "USAGE":
+        return this.isUsageFeatureAllowed(feature, usage);
+      case "DEFAULT":
+        return this.isDefaultFeatureAllowed(feature);
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Check if a metered feature (pay as you go) is allowed
+   * @param feature - The feature to check
+   * @param usage - The usage of the feature
+   * @returns true if the feature is allowed, false otherwise
+   */
+  private isMeteredFeatureAllowed(
+    feature: z.infer<typeof this.featuresSchema>[string],
+    usage: number
+  ) {
+    if (!usage) return false;
+
+    return true;
+  }
+
+  /**
+   * Check if a usage feature (limited to a certain number of usages) is allowed
+   * @param feature - The feature to check
+   * @param usage - The usage of the feature
+   * @returns true if the feature is allowed, false otherwise
+   */
+  private isUsageFeatureAllowed(
+    feature: z.infer<typeof this.featuresSchema>[string],
+    usage: number
+  ) {
+    if (!usage) return false;
+
+    if (feature.metadata?.max && feature.metadata?.max < 1) {
+      return false;
+    }
+
+    if (feature.metadata?.min && feature.metadata?.min > 1) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Check if a default feature (always allowed) is allowed
+   * @param feature - The feature to check
+   * @returns true if the feature is allowed, false otherwise
+   */
+  private isDefaultFeatureAllowed(
+    feature: z.infer<typeof this.featuresSchema>[string]
+  ) {
+    return true;
   }
 }

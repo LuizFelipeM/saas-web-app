@@ -45,7 +45,7 @@ services:
       POSTGRES_USER: saas-wa-user
       POSTGRES_PASSWORD: saas-wa-password
     ports:
-      - 5432:5432
+      - 5431:5432
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:

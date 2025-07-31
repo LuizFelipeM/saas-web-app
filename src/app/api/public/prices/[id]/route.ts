@@ -1,5 +1,5 @@
 import { DIContainer } from "@/lib/di.container";
-import { DITypes } from "@/lib/di.container.types";
+import { DITypes } from "@/lib/di.container/types";
 import { Price } from "@/types/price";
 import { NextResponse } from "next/server";
 

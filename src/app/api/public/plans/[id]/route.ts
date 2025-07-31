@@ -1,5 +1,5 @@
 import { DIContainer } from "@/lib/di.container";
-import { DITypes } from "@/lib/di.container.types";
+import { DITypes } from "@/lib/di.container/types";
 import { Price } from "@/types/price";
 import { NextResponse } from "next/server";
 
@@ -9,9 +9,9 @@ export async function PATCH(
 ) {
   const { id } = await params;
   try {
-    const prisma = DIContainer.getInstance(DITypes.Prisma);
+    const dbManager = DIContainer.getInstance(DITypes.DatabaseManager);
     // Get the plan by stripe product ID
-    const plan = await prisma.plan.findUnique({
+    const plan = await dbManager.client.plan.findUnique({
       where: { stripeProductId: id },
     });
 
@@ -56,10 +56,10 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
-    const prisma = DIContainer.getInstance(DITypes.Prisma);
+    const dbManager = DIContainer.getInstance(DITypes.DatabaseManager);
 
     // Deactivate the plan instead of deleting it
-    await prisma.plan.update({
+    await dbManager.client.plan.update({
       where: { stripeProductId: id },
       data: { isActive: false },
     });

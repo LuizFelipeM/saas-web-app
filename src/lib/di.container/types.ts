@@ -1,41 +1,33 @@
-import { AddonService } from "@/services/addon.service";
 import { FeatureService } from "@/services/feature/feature.service";
-import { KVStoreService } from "@/services/kvStore.service";
 import { OrganizationService } from "@/services/organization.service";
-import { PlanService } from "@/services/plan.service";
-import { SubscriptionService } from "@/services/subscription.service";
 import { UserService } from "@/services/user.service";
+import { ClerkClient } from "@clerk/backend";
+import { DatabaseManager } from "@saas-packages/database-manager";
 import { QueueManager } from "@saas-packages/queue-manager";
 import { Redis } from "ioredis";
 import { Stripe } from "stripe";
-import { PrismaClient } from "./prisma";
+import { PrismaClient } from "../generated/prisma";
+
+export type DatabaseManagerType = DatabaseManager<PrismaClient>;
 
 export const DITypes = {
-  Prisma: "Prisma",
+  DatabaseManager: "DatabaseManager",
   Stripe: "Stripe",
   Redis: "Redis",
   QueueManager: "QueueManager",
-  AddonService: "AddonService",
-  //   OrganizationService: "OrganizationService",
-  //   PermitService: "PermitService",
-  PlanService: "PlanService",
-  SubscriptionService: "SubscriptionService",
   FeatureService: "FeatureService",
   OrganizationService: "OrganizationService",
   UserService: "UserService",
-  KVStoreService: "KVStoreService",
+  ClerkClient: "ClerkClient",
 } as const;
 
 export type ServiceTypes = {
-  [DITypes.Prisma]: PrismaClient;
+  [DITypes.DatabaseManager]: DatabaseManagerType;
   [DITypes.Stripe]: Stripe;
   [DITypes.Redis]: Redis;
   [DITypes.QueueManager]: QueueManager;
-  [DITypes.AddonService]: AddonService;
-  [DITypes.PlanService]: PlanService;
-  [DITypes.SubscriptionService]: SubscriptionService;
   [DITypes.FeatureService]: FeatureService;
   [DITypes.OrganizationService]: OrganizationService;
   [DITypes.UserService]: UserService;
-  [DITypes.KVStoreService]: KVStoreService;
+  [DITypes.ClerkClient]: ClerkClient;
 };
