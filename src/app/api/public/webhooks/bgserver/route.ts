@@ -1,12 +1,15 @@
+import { BgServerWebhook } from "@/types/events/bg.server";
+import { BgServerEventType } from "@/types/events/bg.server/webhook.event";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { event } = body;
+    const event = BgServerWebhook.constructEvent(body);
 
-    switch (event) {
-      case "user.created": {
+    switch (event.type) {
+      case BgServerEventType.UserActivated: {
+        event.data;
         break;
       }
     }
