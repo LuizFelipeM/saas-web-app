@@ -50,16 +50,20 @@ Instead of using `git commit`, use the interactive commitizen:
 ```bash
 pnpm run commit
 # or
+pnpm run commit:all  # This will add all files and then commit
+# or
 npx cz
 ```
 
 This will guide you through creating a conventional commit message with:
 - Type of change (feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, wip, security, deps)
 - Scope (optional)
-- Short description
+- Short description (max 72 characters for the header)
 - Longer description (optional)
 - Breaking changes (optional)
 - Issues affected (optional)
+
+**Note**: The commit header (type + scope + description) must be 72 characters or less.
 
 ### Commit Types
 
