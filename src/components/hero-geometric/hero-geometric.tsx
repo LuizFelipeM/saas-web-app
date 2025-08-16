@@ -1,10 +1,13 @@
 // Base style provided by https://v0.dev/chat/hero-geometric-background-35D7tnmMWsx
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { SignInButton } from "@clerk/nextjs";
+import { motion, Variants } from "framer-motion";
 import { Pacifico } from "next/font/google";
 import Image from "next/image";
+import Link from "next/link";
 
 const pacifico = Pacifico({
   subsets: ["latin"],
@@ -87,7 +90,7 @@ export default function HeroGeometric({
   title1?: string;
   title2?: string;
 }) {
-  const fadeUpVariants = {
+  const fadeUpVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: (i: number) => ({
       opacity: 1,
@@ -201,6 +204,31 @@ export default function HeroGeometric({
               Crafting exceptional digital experiences through innovative design
               and cutting-edge technology.
             </p>
+          </motion.div>
+
+          <motion.div
+            custom={3}
+            variants={fadeUpVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          >
+            <SignInButton>
+              <Button
+                size="lg"
+                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
+              >
+                Sign In
+              </Button>
+            </SignInButton>
+            <Link href="/pricing">
+              <Button
+                size="lg"
+                className="bg-transparent hover:bg-white/10 text-white border border-white/20 hover:border-white/40 backdrop-blur-sm"
+              >
+                View Pricing
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </div>
