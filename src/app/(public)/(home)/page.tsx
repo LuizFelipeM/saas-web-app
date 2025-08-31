@@ -1,6 +1,6 @@
 import HeroGeometric from "@/components/hero-geometric/hero-geometric";
 
-export default function Home() {
+export default function HomePage() {
   return (
     <div>
       <main>

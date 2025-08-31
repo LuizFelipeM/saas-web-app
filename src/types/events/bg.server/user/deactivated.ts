@@ -23,14 +23,14 @@ export class UserDeactivatedEvent extends BgServerEvent<
   constructor(
     payload: BgServerWebhookPayload<BgServerEventType.UserDeactivated>
   ) {
-    if (payload.type !== BgServerEventType.UserDeactivated) {
+    if (payload.event !== BgServerEventType.UserDeactivated) {
       throw new Error(
-        `Invalid event type: expected ${BgServerEventType.UserDeactivated}, got "${payload.type}"`
+        `Invalid event type: expected ${BgServerEventType.UserDeactivated}, got "${payload.event}"`
       );
     }
 
     super(
-      payload.type,
+      payload.event,
       payload.data,
       z.object({
         id: z.string(),

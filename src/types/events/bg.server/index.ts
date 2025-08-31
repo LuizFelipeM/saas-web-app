@@ -16,7 +16,7 @@ export class BgServerWebhook {
   static constructEvent<T extends BgServerEventType>(
     payload: BgServerWebhookPayload<T>
   ): BgServerEventClassMap[T] {
-    switch (payload.type) {
+    switch (payload.event) {
       case BgServerEventType.UserActivated:
         return new UserActivatedEvent(
           payload as BgServerWebhookPayload<BgServerEventType.UserActivated>
@@ -27,7 +27,7 @@ export class BgServerWebhook {
         ) as BgServerEventClassMap[T];
       default:
         throw new Error(
-          `Unknown Background Server event type: ${payload.type}`
+          `Unknown Background Server event type: ${payload.event}`
         );
     }
   }

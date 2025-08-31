@@ -1,20 +1,36 @@
+import { PaymentInterval, Plan, STRIPE_PRICE_IDS } from "@/config/stripe";
 import { DIContainer } from "@/lib/di.container";
 import { DITypes } from "@/lib/di.container/types";
-import { Price } from "@/types/price";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import z from "zod";
+
+const getPriceIdMap = (plan: Plan, interval: PaymentInterval): string =>
+  STRIPE_PRICE_IDS[plan][interval];
 
 export async function POST(req: Request) {
   try {
-    // TODO: Add validation
     // TODO: Add logging
     // TODO: Add addon management
-    const { planId, priceId, organizationId } = await req.json();
+    const { plan, interval, organizationId } = z
+      .object({
+        plan: z.enum(Plan),
+        interval: z.enum(PaymentInterval),
+        organizationId: z.string().startsWith("org_"),
+      })
+      .parse(await req.json());
 
-    if (!planId || !organizationId) {
+    if (!plan) {
       return NextResponse.json(
-        { error: "Missing planId or organizationId" },
+        { error: "Missing price identifier" },
+        { status: 400 }
+      );
+    }
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Missing organization identifier" },
         { status: 400 }
       );
     }
@@ -27,23 +43,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const planService = DIContainer.getInstance(DITypes.PlanService);
-    const plan = await planService.getActivePlanById(planId);
-
-    if (!plan) {
-      return NextResponse.json({ error: "Plan not found" }, { status: 404 });
-    }
-
-    if (!Array.isArray(plan.prices) || plan.prices.length === 0) {
+    if (!user.stripeId) {
+      console.error(`User ${userId} has no stripe customer id`);
       return NextResponse.json(
-        { error: "Plan has no prices" },
+        { error: "User has no customer account" },
         { status: 400 }
       );
-    }
-
-    const price = plan.prices?.find((p) => (p as Price).id === priceId);
-    if (!price) {
-      return NextResponse.json({ error: "Price not found" }, { status: 404 });
     }
 
     const stripe = DIContainer.getInstance(DITypes.Stripe);
@@ -62,12 +67,13 @@ export async function POST(req: Request) {
 
     let session: Stripe.Response<Stripe.Checkout.Session>;
     try {
+      const priceId = getPriceIdMap(plan, interval);
       session = await stripe.checkout.sessions.create({
         customer: user.stripeId!,
         payment_method_types: ["card"],
         line_items: [
           {
-            price: (price as Price).id,
+            price: priceId,
             quantity: 1,
           },
         ],
@@ -75,13 +81,17 @@ export async function POST(req: Request) {
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/success`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
         metadata: {
-          planId,
+          plan,
+          interval,
+          priceId,
           organizationId: organization.id,
           userId,
         },
         subscription_data: {
           metadata: {
-            planId,
+            plan,
+            interval,
+            priceId,
             organizationId: organization.id,
             userId,
           },

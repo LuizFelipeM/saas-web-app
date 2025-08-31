@@ -13,7 +13,8 @@ networks:
 services:
   st-web-app:
     depends_on:
-      - st-wa-postgres
+      st-wa-postgres:
+        condition: service_healthy
     container_name: st-web-app
     restart: unless-stopped
     build:
@@ -44,6 +45,11 @@ services:
       POSTGRES_DB: saas-web-app
       POSTGRES_USER: saas-wa-user
       POSTGRES_PASSWORD: saas-wa-password
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     ports:
       - 5431:5432
     volumes:

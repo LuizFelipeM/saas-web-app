@@ -1,4 +1,8 @@
-import { FeatureType } from "@/lib/generated/prisma";
+export enum FeatureType {
+  DEFAULT = "DEFAULT",
+  USAGE = "USAGE",
+  METERED = "METERED",
+}
 
 export interface Feature {
   type: FeatureType;

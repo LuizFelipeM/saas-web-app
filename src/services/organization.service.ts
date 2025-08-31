@@ -1,8 +1,9 @@
 import { type DatabaseManagerType, DITypes } from "@/lib/di.container/types";
 import { Organization, Prisma, User, UserRole } from "@/lib/generated/prisma";
+import { InputJsonValue } from "@/lib/generated/prisma/runtime/library";
 import { Queues } from "@/lib/queues";
 import { QueueEvents } from "@/lib/queues/events";
-import type { ClerkClient } from "@clerk/backend";
+import { clerkClient } from "@clerk/nextjs/server";
 import { QueueManager } from "@saas-packages/queue-manager";
 import { inject, injectable } from "tsyringe";
 
@@ -15,9 +16,7 @@ export class OrganizationService {
     @inject(DITypes.DatabaseManager)
     private readonly dbManager: DatabaseManagerType,
     @inject(DITypes.QueueManager)
-    private readonly queueManager: QueueManager,
-    @inject(DITypes.ClerkClient)
-    private readonly clerkClient: ClerkClient
+    private readonly queueManager: QueueManager
   ) {
     this.organizationDelegate = this.dbManager.client.organization;
     this.membershipDelegate = this.dbManager.client.membership;
@@ -52,11 +51,11 @@ export class OrganizationService {
   }
 
   async create(name: string, user: User): Promise<Organization> {
-    const clerkOrganization =
-      await this.clerkClient.organizations.createOrganization({
-        name,
-        createdBy: user.clerkId,
-      });
+    const client = await clerkClient();
+    const clerkOrganization = await client.organizations.createOrganization({
+      name,
+      createdBy: user.clerkId,
+    });
 
     const organization = await this.organizationDelegate.create({
       data: {
@@ -90,12 +89,26 @@ export class OrganizationService {
     return organization;
   }
 
+  async update(organization: Organization): Promise<Organization> {
+    return await this.organizationDelegate.update({
+      where: { id: organization.id },
+      data: {
+        name: organization.name,
+        slug: organization.slug,
+        features: organization.features as unknown as InputJsonValue,
+        usages: organization.usages as unknown as InputJsonValue,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
   async addUser(
     organizationId: string,
     user: User,
     role: UserRole
   ): Promise<void> {
-    await this.clerkClient.organizations.createOrganizationMembership({
+    const client = await clerkClient();
+    await client.organizations.createOrganizationMembership({
       organizationId,
       userId: user.clerkId,
       role,

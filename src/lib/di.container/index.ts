@@ -3,7 +3,6 @@ import "reflect-metadata";
 import { FeatureService } from "@/services/feature/feature.service";
 import { OrganizationService } from "@/services/organization.service";
 import { UserService } from "@/services/user.service";
-import { clerkClient } from "@clerk/nextjs/server";
 import { DatabaseManager } from "@saas-packages/database-manager";
 import { QueueManager } from "@saas-packages/queue-manager";
 import Redis from "ioredis";
@@ -14,7 +13,7 @@ import { createQueues } from "../queues";
 import { DITypes, ServiceTypes } from "./types";
 
 export class DIContainer {
-  private static _container = container;
+  private static _container = container.createChildContainer();
   private static _singletonInstances: {
     [key in keyof ServiceTypes]?: ServiceTypes[key];
   } = {};
@@ -68,11 +67,6 @@ export class DIContainer {
         }
         return this._singletonInstances[DITypes.QueueManager];
       },
-    });
-
-    this._singletonInstances[DITypes.ClerkClient] = await clerkClient();
-    this._container.register(DITypes.ClerkClient, {
-      useValue: this._singletonInstances[DITypes.ClerkClient],
     });
   }
 

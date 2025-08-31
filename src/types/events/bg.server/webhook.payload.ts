@@ -5,6 +5,7 @@ export interface BgServerWebhookPayload<
   T extends BgServerEventType = BgServerEventType
 > {
   id: string;
-  type: T;
+  timestamp: number;
+  event: T;
   data: BgServerEventDataMap[T];
 }

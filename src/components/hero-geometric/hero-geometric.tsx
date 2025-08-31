@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { SignInButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { motion, Variants } from "framer-motion";
 import { Pacifico } from "next/font/google";
 import Image from "next/image";
@@ -213,14 +213,26 @@ export default function HeroGeometric({
             animate="visible"
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <SignInButton>
-              <Button
-                size="lg"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
-              >
-                Sign In
-              </Button>
-            </SignInButton>
+            <SignedIn>
+              <Link href="/dashboard">
+                <Button
+                  size="lg"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
+                >
+                  Dashboard
+                </Button>
+              </Link>
+            </SignedIn>
+            <SignedOut>
+              <SignInButton>
+                <Button
+                  size="lg"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
+                >
+                  Sign In
+                </Button>
+              </SignInButton>
+            </SignedOut>
             <Link href="/pricing">
               <Button
                 size="lg"
